@@ -6,16 +6,10 @@
   <title>💎 17depot收支與小卡庫存管理</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-  <style>
-    /* SVT 應援色漸層背景點綴 */
-    .svt-gradient {
-      background: linear-gradient(135deg, #F7CAC9 0%, #91A8D0 100%);
-    }
-  </style>
 </head>
 <body class="bg-[#F8FAFC] p-4 md:p-8 font-sans text-slate-700">
   <div id="app" class="max-w-4xl mx-auto">
-    <!-- 標頭 (柔和寧靜藍與玫瑰粉搭配) -->
+    <!-- 標頭 -->
     <header class="bg-white rounded-2xl p-6 shadow-sm border border-[#E2E8F0] mb-6 flex justify-between items-center relative overflow-hidden">
       <div class="absolute top-0 left-0 w-2 h-full bg-[#91A8D0]"></div>
       <div class="pl-3">
@@ -42,16 +36,16 @@
         @click="activeTab = 'inventory'" 
         :class="activeTab === 'inventory' ? 'bg-[#91A8D0] text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'"
         class="px-5 py-2.5 rounded-xl font-medium transition-all">
-        🃏 倉庫庫存
+        🃏 成員小卡庫存 (13人)
       </button>
     </div>
 
     <!-- 分頁 1: 代購營收與專案 -->
     <div v-if="activeTab === 'finance'" class="space-y-6">
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="text-lg font-bold text-slate-800 mb-4">➕ 新增代購帳目</h2>
+        <h2 class="text-lg font-bold text-slate-800 mb-4">➕ 新增團購帳目</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input v-model="newProject.title" type="text" placeholder="代購品項名稱 (例: 12th Mini Album 預購)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album 預購)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.income" type="number" placeholder="一補+二補 預估總收入 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.costKrw" type="number" placeholder="韓元採購成本 (KRW)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.rate" type="number" step="0.001" placeholder="採用匯率 (預設 0.024)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
@@ -78,7 +72,7 @@
       </div>
 
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h3 class="font-bold text-slate-800 mb-4">代購利潤明細</h3>
+        <h3 class="font-bold text-slate-800 mb-4">專案利潤明細</h3>
         <div v-if="projects.length === 0" class="text-slate-400 text-center py-8">目前尚無代購專案記錄</div>
         <div class="space-y-3">
           <div v-for="(p, index) in projects" :key="index" class="p-4 border border-slate-100 rounded-xl flex justify-between items-center hover:bg-slate-50 transition-all">
@@ -99,10 +93,10 @@
       </div>
     </div>
 
-    <!-- 分頁 2: 倉儲庫存 -->
+    <!-- 分頁 2: 13位成員小卡庫存 -->
     <div v-if="activeTab === 'inventory'" class="space-y-6">
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="text-lg font-bold text-slate-800 mb-4">🃏 登記庫存狀態</h2>
+        <h2 class="text-lg font-bold text-slate-800 mb-4">🃏 登記成員小卡認領狀態</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <select v-model="newItem.member" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             <option v-for="m in members" :key="m" :value="m">{{ m }}</option>
@@ -147,14 +141,31 @@
   </div>
 
   <script>
-    const { createApp, ref, computed } = Vue
+    const { createApp, ref, computed, watch, onMounted } = Vue
     createApp({
       setup() {
         const activeTab = ref('finance')
         const members = ['S.COUPS', 'JEONGHAN', 'JOSHUA', 'JUN', 'HOSHI', 'WONWOO', 'WOOZI', 'THE 8', 'MINGYU', 'DK', 'SEUNGKWAN', 'VERNON', 'DINO', '團體/全員']
-        const projects = ref([{ title: '12th Mini Album 官網預購', income: 15000, costKrw: 450000, rate: 0.024, shipping: 1200 }])
+        
+        const defaultProjects = [{ title: '12th Mini Album 官網預購', income: 15000, costKrw: 450000, rate: 0.024, shipping: 1200 }]
+        const defaultInventory = [{ member: 'HOSHI', name: '全專官網特典卡', status: '未認領' }, { member: 'JEONGHAN', name: '專輯隨機小卡 A款', status: '已預訂' }]
+
+        const projects = ref([])
+        const inventory = ref([])
+
+        // 初始化：讀取本地儲存
+        onMounted(() => {
+          const savedProjects = localStorage.getItem('17depot_projects')
+          const savedInventory = localStorage.getItem('17depot_inventory')
+          projects.value = savedProjects ? JSON.parse(savedProjects) : defaultProjects
+          inventory.value = savedInventory ? JSON.parse(savedInventory) : defaultInventory
+        })
+
+        // 自動監聽變更並儲存到瀏覽器
+        watch(projects, (newVal) => localStorage.setItem('17depot_projects', JSON.stringify(newVal)), { deep: true })
+        watch(inventory, (newVal) => localStorage.setItem('17depot_inventory', JSON.stringify(newVal)), { deep: true })
+
         const newProject = ref({ title: '', income: '', costKrw: '', rate: 0.024, shipping: '' })
-        const inventory = ref([{ member: 'HOSHI', name: '全專官網特典卡', status: '未認領' }, { member: 'JEONGHAN', name: '專輯隨機小卡 A款', status: '已預訂' }])
         const newItem = ref({ member: 'HOSHI', name: '', status: '未認領' })
 
         const calcProfit = (p) => p.income - Math.round(p.costKrw * p.rate) - p.shipping
