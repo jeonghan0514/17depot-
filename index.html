@@ -76,10 +76,28 @@
       </div>
 
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h3 class="font-bold text-slate-800 mb-4">專案利潤明細</h3>
-        <div v-if="projects.length === 0" class="text-slate-400 text-center py-8">目前尚無代購專案記錄</div>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+          <h3 class="font-bold text-slate-800">專案利潤明細</h3>
+          
+          <!-- 🔍 篩選與排序控制區 -->
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+            <select v-model="filterStatus" class="p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#91A8D0] bg-slate-50">
+              <option value="全部">🔍 全部貨態</option>
+              <option v-for="s in shippingStatuses" :key="s" :value="s">{{ s }}</option>
+            </select>
+
+            <select v-model="sortOrder" class="p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#91A8D0] bg-slate-50">
+              <option value="newest">⬇️ 建立時間：新到舊 (倒序)</option>
+              <option value="oldest">⬆️ 建立時間：舊到新 (順序)</option>
+              <option value="profitDesc">💰 淨利：高到低</option>
+              <option value="profitAsc">💸 淨利：低到高</option>
+            </select>
+          </div>
+        </div>
+
+        <div v-if="filteredProjects.length === 0" class="text-slate-400 text-center py-8">目前無符合條件的代購專案記錄</div>
         <div class="space-y-3">
-          <div v-for="(p, index) in projects" :key="index" class="p-4 border border-slate-100 rounded-xl flex justify-between items-center hover:bg-slate-50 transition-all">
+          <div v-for="p in filteredProjects" :key="p.id" class="p-4 border border-slate-100 rounded-xl flex justify-between items-center hover:bg-slate-50 transition-all">
             <div>
               <div class="flex items-center gap-2">
                 <span class="font-bold text-slate-800">{{ p.title }}</span>
@@ -100,8 +118,8 @@
                   淨利: ${{ calcProfit(p) }}
                 </div>
                 <div class="flex gap-2 justify-end mt-1">
-                  <button @click="openEditModal(index)" class="text-xs text-[#91A8D0] hover:underline font-medium">✏️ 編輯/二補</button>
-                  <button @click="deleteProject(index)" class="text-xs text-slate-400 hover:text-rose-500">刪除</button>
+                  <button @click="openEditModalById(p.id)" class="text-xs text-[#91A8D0] hover:underline font-medium">✏️ 編輯/二補</button>
+                  <button @click="deleteProjectById(p.id)" class="text-xs text-slate-400 hover:text-rose-500">刪除</button>
                 </div>
               </div>
             </div>
@@ -157,7 +175,7 @@
     </div>
 
     <!-- ✏️ 編輯專案 / 二補彈窗 -->
-    <div v-if="editingIndex !== null" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div v-if="editingId !== null" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl">
         <h3 class="text-lg font-bold text-slate-800 mb-4">✏️ 編輯專案 / 補上二補金額</h3>
         <div class="space-y-3">
@@ -195,7 +213,7 @@
           </div>
         </div>
         <div class="flex gap-2 mt-6">
-          <button @click="editingIndex = null" class="w-1/2 py-2.5 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-medium">取消</button>
+          <button @click="editingId = null" class="w-1/2 py-2.5 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-medium">取消</button>
           <button @click="saveEdit" class="w-1/2 py-2.5 bg-[#91A8D0] text-white rounded-xl hover:bg-[#7d97c4] font-bold shadow-md">儲存修改</button>
         </div>
       </div>
@@ -211,16 +229,32 @@
         const members = ['S.COUPS', 'JEONGHAN', 'JOSHUA', 'JUN', 'HOSHI', 'WONWOO', 'WOOZI', 'THE 8', 'MINGYU', 'DK', 'SEUNGKWAN', 'VERNON', 'DINO', '團體/全員']
         const shippingStatuses = ['開團中', '已購買完成', '官方出貨中', '已入集運倉', '運回中', '已寄發二補通知信', '出貨完畢']
         
-        const defaultProjects = [{ title: '12th Mini Album 預購', status: '開團中', income: 15000, costTwd: 8000, costKrw: 150000, rate: 0.024, shipping: 1200 }]
+        const defaultProjects = [{ id: 1, title: '12th Mini Album 預購', status: '開團中', income: 15000, costTwd: 8000, costKrw: 150000, rate: 0.024, shipping: 1200, createdAt: Date.now() }]
         const defaultInventory = [{ member: 'HOSHI', name: '全專官網特典卡', status: '未認領' }, { member: 'JEONGHAN', name: '專輯隨機小卡 A款', status: '已預訂' }]
 
         const projects = ref([])
         const inventory = ref([])
 
+        // 篩選與排序變數
+        const filterStatus = ref('全部')
+        const sortOrder = ref('newest')
+
         onMounted(() => {
           const savedProjects = localStorage.getItem('17depot_projects')
           const savedInventory = localStorage.getItem('17depot_inventory')
-          projects.value = savedProjects ? JSON.parse(savedProjects) : defaultProjects
+          
+          if (savedProjects) {
+            const parsed = JSON.parse(savedProjects)
+            // 補齊舊資料缺少的 id 和 createdAt
+            projects.value = parsed.map((p, idx) => ({
+              id: p.id || (Date.now() + idx),
+              createdAt: p.createdAt || (Date.now() + idx),
+              ...p
+            }))
+          } else {
+            projects.value = defaultProjects
+          }
+
           inventory.value = savedInventory ? JSON.parse(savedInventory) : defaultInventory
         })
 
@@ -230,20 +264,59 @@
         const newProject = ref({ title: '', status: '開團中', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' })
         const newItem = ref({ member: 'HOSHI', name: '', status: '未認領' })
 
-        const editingIndex = ref(null)
+        const editingId = ref(null)
         const editProject = ref({})
 
-        const openEditModal = (index) => {
-          editingIndex.value = index
-          editProject.value = { ...projects.value[index] }
+        const openEditModalById = (id) => {
+          const target = projects.value.find(p => p.id === id)
+          if (target) {
+            editingId.value = id
+            editProject.value = { ...target }
+          }
         }
 
         const saveEdit = () => {
-          if (editingIndex.value !== null) {
-            projects.value[editingIndex.value] = { ...editProject.value }
-            editingIndex.value = null
+          if (editingId.value !== null) {
+            const idx = projects.value.findIndex(p => p.id === editingId.value)
+            if (idx !== -1) {
+              projects.value[idx] = { ...editProject.value }
+            }
+            editingId.value = null
           }
         }
+
+        const deleteProjectById = (id) => {
+          projects.value = projects.value.filter(p => p.id !== id)
+        }
+
+        const calcProfit = (p) => {
+          const inc = p.income || 0
+          const twd = p.costTwd || 0
+          const krwInTwd = Math.round((p.costKrw || 0) * (p.rate || 0.024))
+          const ship = p.shipping || 0
+          return inc - twd - krwInTwd - ship
+        }
+
+        // 計算篩選與排序後的專案列表
+        const filteredProjects = computed(() => {
+          let list = [...projects.value]
+
+          // 1. 貨態篩選
+          if (filterStatus.value !== '全部') {
+            list = list.filter(p => p.status === filterStatus.value)
+          }
+
+          // 2. 排序方式
+          list.sort((a, b) => {
+            if (sortOrder.value === 'newest') return (b.createdAt || 0) - (a.createdAt || 0)
+            if (sortOrder.value === 'oldest') return (a.createdAt || 0) - (b.createdAt || 0)
+            if (sortOrder.value === 'profitDesc') return calcProfit(b) - calcProfit(a)
+            if (sortOrder.value === 'profitAsc') return calcProfit(a) - calcProfit(b)
+            return 0
+          })
+
+          return list
+        })
 
         const getStatusBadgeClass = (status) => {
           switch (status) {
@@ -258,20 +331,16 @@
           }
         }
 
-        const calcProfit = (p) => {
-          const inc = p.income || 0
-          const twd = p.costTwd || 0
-          const krwInTwd = Math.round((p.costKrw || 0) * (p.rate || 0.024))
-          const ship = p.shipping || 0
-          return inc - twd - krwInTwd - ship
-        }
-
         const addProject = () => {
           if (!newProject.value.title) return
-          projects.value.push({ ...newProject.value })
+          projects.value.push({ 
+            id: Date.now(),
+            createdAt: Date.now(),
+            ...newProject.value 
+          })
           newProject.value = { title: '', status: '開團中', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' }
         }
-        const deleteProject = (index) => projects.value.splice(index, 1)
+
         const addItem = () => {
           if (!newItem.value.name) return
           inventory.value.push({ ...newItem.value })
@@ -290,9 +359,10 @@
 
         return { 
           activeTab, members, shippingStatuses, projects, newProject, inventory, newItem, 
-          editingIndex, editProject, openEditModal, saveEdit, getStatusBadgeClass,
-          calcProfit, addProject, deleteProject, addItem, deleteItem, 
-          totalRevenue, totalCost, totalProfit 
+          editingId, editProject, openEditModalById, saveEdit, deleteProjectById, getStatusBadgeClass,
+          calcProfit, addProject, addItem, deleteItem, 
+          totalRevenue, totalCost, totalProfit,
+          filterStatus, sortOrder, filteredProjects
         }
       }
     }).mount('#app')
