@@ -56,26 +56,48 @@
           <svg class="w-5 h-5 text-[#91A8D0]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
           新增團購帳目
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album 預購)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
-          <select v-model="newProject.status" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
-            <option v-for="s in shippingStatuses" :key="s" :value="s">貨態：{{ s }}</option>
-          </select>
+        
+        <div class="space-y-4">
+          <!-- 第 1 層：專案名稱 -->
           <div>
-            <label class="text-xs text-slate-500 font-medium ml-1">結單日</label>
-            <input v-model="newProject.closeDate" type="date" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600 mt-1">
+            <label class="text-xs text-slate-500 font-medium ml-1">專案名稱</label>
+            <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album 預購)" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] mt-1">
           </div>
+
+          <!-- 第 2 層：結單日與預計出貨日 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-slate-500 font-medium ml-1">結單日</label>
+              <input v-model="newProject.closeDate" type="date" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600 mt-1">
+            </div>
+            <div>
+              <label class="text-xs text-slate-500 font-medium ml-1">預計出貨日</label>
+              <input v-model="newProject.estShipDate" type="date" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600 mt-1">
+            </div>
+          </div>
+
+          <!-- 第 3 層：收入與成本 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-slate-500 font-medium ml-1">預估總收入 (TWD 一補+二補)</label>
+              <input v-model.number="newProject.income" type="number" placeholder="0" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] mt-1">
+            </div>
+            <div>
+              <label class="text-xs text-slate-500 font-medium ml-1">採購與雜支總成本 (TWD)</label>
+              <input v-model.number="newProject.costTwd" type="number" placeholder="0" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] mt-1">
+            </div>
+          </div>
+
+          <!-- 第 4 層：貨態狀況 -->
           <div>
-            <label class="text-xs text-slate-500 font-medium ml-1">預計出貨日</label>
-            <input v-model="newProject.estShipDate" type="date" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600 mt-1">
+            <label class="text-xs text-slate-500 font-medium ml-1">貨態狀況</label>
+            <select v-model="newProject.status" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] mt-1">
+              <option v-for="s in shippingStatuses" :key="s" :value="s">{{ s }}</option>
+            </select>
           </div>
-          <input v-model.number="newProject.income" type="number" placeholder="預估總收入 (TWD 一補+二補)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          <input v-model.number="newProject.costTwd" type="number" placeholder="台幣採購成本 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          <input v-model.number="newProject.costKrw" type="number" placeholder="韓元採購成本 (KRW)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          <input v-model.number="newProject.rate" type="number" step="0.001" placeholder="韓元匯率 (預設 0.024)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          <input v-model.number="newProject.shipping" type="number" placeholder="運費與雜支成本 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
         </div>
-        <button @click="addProject" class="mt-4 w-full bg-[#91A8D0] hover:bg-[#7d97c4] text-white font-bold py-3 rounded-xl shadow-md transition-all flex justify-center items-center gap-2">
+
+        <button @click="addProject" class="mt-5 w-full bg-[#91A8D0] hover:bg-[#7d97c4] text-white font-bold py-3 rounded-xl shadow-md transition-all flex justify-center items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           儲存專案帳目
         </button>
@@ -145,9 +167,7 @@
 
               <div class="text-xs text-slate-500 truncate">
                 收入: ${{ p.income || 0 }} | 
-                台幣成本: ${{ p.costTwd || 0 }} | 
-                韓元換算: ${{ Math.round((p.costKrw || 0) * (p.rate || 0.024)) }} | 
-                雜支: ${{ p.shipping || 0 }}
+                總成本: ${{ p.costTwd || 0 }}
               </div>
             </div>
 
@@ -235,12 +255,6 @@
             <label class="text-xs text-slate-500 font-medium">專案名稱</label>
             <input v-model="editProject.title" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           </div>
-          <div>
-            <label class="text-xs text-slate-500 font-medium">貨態狀況</label>
-            <select v-model="editProject.status" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-              <option v-for="s in shippingStatuses" :key="s" :value="s">{{ s }}</option>
-            </select>
-          </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-xs text-slate-500 font-medium">結單日</label>
@@ -251,27 +265,21 @@
               <input v-model="editProject.estShipDate" type="date" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600">
             </div>
           </div>
-          <div>
-            <label class="text-xs text-slate-500 font-medium">總收入 (一補 + 二補金額 TWD)</label>
-            <input v-model.number="editProject.income" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          </div>
-          <div>
-            <label class="text-xs text-slate-500 font-medium">台幣採購成本 (TWD)</label>
-            <input v-model.number="editProject.costTwd" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-xs text-slate-500 font-medium">韓元採購成本 (KRW)</label>
-              <input v-model.number="editProject.costKrw" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+              <label class="text-xs text-slate-500 font-medium">預估總收入 (TWD)</label>
+              <input v-model.number="editProject.income" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             </div>
             <div>
-              <label class="text-xs text-slate-500 font-medium">韓元匯率</label>
-              <input v-model.number="editProject.rate" type="number" step="0.001" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+              <label class="text-xs text-slate-500 font-medium">採購與雜支總成本 (TWD)</label>
+              <input v-model.number="editProject.costTwd" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             </div>
           </div>
           <div>
-            <label class="text-xs text-slate-500 font-medium">運費與雜支成本 (TWD)</label>
-            <input v-model.number="editProject.shipping" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+            <label class="text-xs text-slate-500 font-medium">貨態狀況</label>
+            <select v-model="editProject.status" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+              <option v-for="s in shippingStatuses" :key="s" :value="s">{{ s }}</option>
+            </select>
           </div>
         </div>
         <div class="flex gap-2 mt-6">
@@ -312,7 +320,6 @@
         const filterStatus = ref('全部')
         const sortOrder = ref('newest')
 
-        // 監聽 Firebase 雲端資料庫
         onMounted(() => {
           db.ref('projects').on('value', (snapshot) => {
             const data = snapshot.val()
@@ -333,7 +340,7 @@
           })
         })
 
-        const newProject = ref({ title: '', status: '開團中', closeDate: '', estShipDate: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' })
+        const newProject = ref({ title: '', status: '開團中', closeDate: '', estShipDate: '', income: '', costTwd: '' })
         const newItem = ref({ member: 'HOSHI', name: '', status: '未認領' })
 
         const editingId = ref(null)
@@ -362,9 +369,7 @@
         const calcProfit = (p) => {
           const inc = p.income || 0
           const twd = p.costTwd || 0
-          const krwInTwd = Math.round((p.costKrw || 0) * (p.rate || 0.024))
-          const ship = p.shipping || 0
-          return inc - twd - krwInTwd - ship
+          return inc - twd
         }
 
         const filteredProjects = computed(() => {
@@ -426,7 +431,7 @@
             createdAt: Date.now(),
             ...newProject.value
           })
-          newProject.value = { title: '', status: '開團中', closeDate: '', estShipDate: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' }
+          newProject.value = { title: '', status: '開團中', closeDate: '', estShipDate: '', income: '', costTwd: '' }
         }
 
         const addItem = () => {
@@ -444,12 +449,7 @@
         }
 
         const totalRevenue = computed(() => projects.value.reduce((acc, p) => acc + (p.income || 0), 0))
-        const totalCost = computed(() => projects.value.reduce((acc, p) => {
-          const twd = p.costTwd || 0
-          const krwInTwd = Math.round((p.costKrw || 0) * (p.rate || 0.024))
-          const ship = p.shipping || 0
-          return acc + twd + krwInTwd + ship
-        }, 0))
+        const totalCost = computed(() => projects.value.reduce((acc, p) => acc + (p.costTwd || 0), 0))
         const totalProfit = computed(() => totalRevenue.value - totalCost.value)
 
         return { 
