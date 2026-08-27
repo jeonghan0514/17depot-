@@ -6,6 +6,8 @@
   <title>💎 17depot收支&庫存管理</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- 引入可愛極簡圖示庫 Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-[#F8FAFC] p-4 md:p-8 font-sans text-slate-700">
   <div id="app" class="max-w-4xl mx-auto">
@@ -14,7 +16,9 @@
       <div class="absolute top-0 left-0 w-2 h-full bg-[#91A8D0]"></div>
       <div class="pl-3">
         <h1 class="text-2xl font-bold text-[#4A5568] flex items-center gap-2">
-          💎 17depot 收支&庫存
+          <!-- 鑽石圖示 -->
+          <svg class="w-7 h-7 text-[#91A8D0]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12l4 6-10 12L2 9z"/></svg>
+          17depot 收支&庫存
         </h1>
         <p class="text-[#718096] text-sm mt-1">SVT 官方應援色質感版 · 即時紀錄收益與 13 位成員盤點</p>
       </div>
@@ -29,21 +33,26 @@
       <button 
         @click="activeTab = 'finance'" 
         :class="activeTab === 'finance' ? 'bg-[#91A8D0] text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'"
-        class="px-5 py-2.5 rounded-xl font-medium transition-all">
-        📊 代購營收統計
+        class="px-5 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M18 17V9m-5 8V5m-5 8v-3"/></svg>
+        代購營收統計
       </button>
       <button 
         @click="activeTab = 'inventory'" 
         :class="activeTab === 'inventory' ? 'bg-[#91A8D0] text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'"
-        class="px-5 py-2.5 rounded-xl font-medium transition-all">
-        🃏 庫存
+        class="px-5 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+        庫存
       </button>
     </div>
 
     <!-- 分頁 1: 代購營收與專案 -->
     <div v-if="activeTab === 'finance'" class="space-y-6">
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="text-lg font-bold text-slate-800 mb-4">➕ 新增團購帳目</h2>
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-[#91A8D0]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          新增團購帳目
+        </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album 預購)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
           <select v-model="newProject.status" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
@@ -58,7 +67,8 @@
           <input v-model.number="newProject.rate" type="number" step="0.001" placeholder="韓元匯率 (預設 0.024)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.shipping" type="number" placeholder="運費與雜支成本 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
         </div>
-        <button @click="addProject" class="mt-4 w-full bg-[#91A8D0] hover:bg-[#7d97c4] text-white font-bold py-3 rounded-xl shadow-md transition-all">
+        <button @click="addProject" class="mt-4 w-full bg-[#91A8D0] hover:bg-[#7d97c4] text-white font-bold py-3 rounded-xl shadow-md transition-all flex justify-center items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           儲存專案帳目
         </button>
       </div>
@@ -85,17 +95,17 @@
           <!-- 🔍 篩選與排序控制區 -->
           <div class="flex flex-wrap gap-2 w-full sm:w-auto">
             <select v-model="filterStatus" class="p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#91A8D0] bg-slate-50">
-              <option value="全部">🔍 全部貨態</option>
+              <option value="全部">全部貨態</option>
               <option v-for="s in shippingStatuses" :key="s" :value="s">{{ s }}</option>
             </select>
 
             <select v-model="sortOrder" class="p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#91A8D0] bg-slate-50">
-              <option value="newest">⬇️ 建立時間：新到舊 (倒序)</option>
-              <option value="oldest">⬆️ 建立時間：舊到新 (順序)</option>
-              <option value="shipDateAsc">📅 預計出貨日：近到遠</option>
-              <option value="shipDateDesc">📅 預計出貨日：遠到近</option>
-              <option value="profitDesc">💰 淨利：高到低</option>
-              <option value="profitAsc">💸 淨利：低到高</option>
+              <option value="newest">建立時間：新到舊 (倒序)</option>
+              <option value="oldest">建立時間：舊到新 (順序)</option>
+              <option value="shipDateAsc">預計出貨日：近到遠</option>
+              <option value="shipDateDesc">預計出貨日：遠到近</option>
+              <option value="profitDesc">淨利：高到低</option>
+              <option value="profitAsc">淨利：低到高</option>
             </select>
           </div>
         </div>
@@ -115,7 +125,8 @@
               
               <!-- 第二層：預計出貨日 -->
               <div class="text-xs text-slate-500 flex items-center gap-1">
-                <span>📅 預計出貨日：</span>
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>預計出貨日：</span>
                 <span v-if="p.estShipDate" class="font-medium text-slate-700">{{ p.estShipDate }}</span>
                 <span v-else class="text-slate-400">未設定</span>
               </div>
@@ -134,9 +145,15 @@
               <div class="text-sm font-bold whitespace-nowrap" :class="calcProfit(p) >= 0 ? 'text-[#5B8266]' : 'text-[#D98282]'">
                 淨利: ${{ calcProfit(p) }}
               </div>
-              <div class="flex items-center gap-2 mt-1 whitespace-nowrap">
-                <button @click="openEditModalById(p.id)" class="text-xs text-[#91A8D0] hover:underline font-medium">✏️ 編輯/二補</button>
-                <button @click="deleteProjectById(p.id)" class="text-xs text-slate-400 hover:text-rose-500">刪除</button>
+              <div class="flex items-center gap-3 mt-1.5 whitespace-nowrap">
+                <button @click="openEditModalById(p.id)" class="text-xs text-[#91A8D0] hover:underline font-medium flex items-center gap-0.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  編輯/二補
+                </button>
+                <button @click="deleteProjectById(p.id)" class="text-xs text-slate-400 hover:text-rose-500 flex items-center gap-0.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  刪除
+                </button>
               </div>
             </div>
           </div>
@@ -147,7 +164,10 @@
     <!-- 分頁 2: 庫存 -->
     <div v-if="activeTab === 'inventory'" class="space-y-6">
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="text-lg font-bold text-slate-800 mb-4">🃏 登記認領狀態</h2>
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-[#91A8D0]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 8-9-4-9 4 9 4 9-4M3 8v10l9 5 9-5V8"/></svg>
+          登記認領狀態
+        </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <select v-model="newItem.member" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             <option v-for="m in members" :key="m" :value="m">{{ m }}</option>
@@ -159,7 +179,8 @@
             <option value="已寄出">已寄出</option>
           </select>
         </div>
-        <button @click="addItem" class="mt-4 w-full bg-[#91A8D0] hover:bg-[#7d97c4] text-white font-bold py-3 rounded-xl shadow-md transition-all">
+        <button @click="addItem" class="mt-4 w-full bg-[#91A8D0] hover:bg-[#7d97c4] text-white font-bold py-3 rounded-xl shadow-md transition-all flex justify-center items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           加入庫存清單
         </button>
       </div>
@@ -183,7 +204,9 @@
                 }">
                 {{ item.status }}
               </span>
-              <button @click="deleteItem(index)" class="text-xs text-slate-400 hover:text-rose-500">✕</button>
+              <button @click="deleteItem(index)" class="text-slate-400 hover:text-rose-500 p-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
           </div>
         </div>
@@ -193,7 +216,10 @@
     <!-- ✏️ 編輯專案 / 二補彈窗 -->
     <div v-if="editingId !== null" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl">
-        <h3 class="text-lg font-bold text-slate-800 mb-4">✏️ 編輯專案 / 補上二補金額</h3>
+        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-[#91A8D0]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          編輯專案 / 補上二補金額
+        </h3>
         <div class="space-y-3">
           <div>
             <label class="text-xs text-slate-500 font-medium">專案名稱</label>
