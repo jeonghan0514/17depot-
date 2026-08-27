@@ -45,11 +45,12 @@
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <h2 class="text-lg font-bold text-slate-800 mb-4">➕ 新增團購帳目</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album 預購)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          <input v-model.number="newProject.income" type="number" placeholder="一補+二補 預估總收入 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          <input v-model.number="newProject.costKrw" type="number" placeholder="韓元採購成本 (KRW)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          <input v-model.number="newProject.rate" type="number" step="0.001" placeholder="採用匯率 (預設 0.024)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          <input v-model.number="newProject.shipping" type="number" placeholder="國際/國內運費雜支 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album 預購)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
+          <input v-model.number="newProject.income" type="number" placeholder="預估總收入 (TWD 一補+二補)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          <input v-model.number="newProject.costTwd" type="number" placeholder="台幣採購成本 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          <input v-model.number="newProject.costKrw" type="number" placeholder="韓元採購成本 (KRW 偶爾使用)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          <input v-model.number="newProject.rate" type="number" step="0.001" placeholder="韓元匯率 (預設 0.024)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          <input v-model.number="newProject.shipping" type="number" placeholder="運費與雜支成本 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
         </div>
         <button @click="addProject" class="mt-4 w-full bg-[#91A8D0] hover:bg-[#7d97c4] text-white font-bold py-3 rounded-xl shadow-md transition-all">
           儲存專案帳目
@@ -79,7 +80,10 @@
             <div>
               <div class="font-bold text-slate-800">{{ p.title }}</div>
               <div class="text-xs text-slate-500 mt-1">
-                收入: ${{ p.income }} | 韓元換算: ${{ Math.round(p.costKrw * p.rate) }} | 運費雜支: ${{ p.shipping }}
+                收入: ${{ p.income || 0 }} | 
+                台幣成本: ${{ p.costTwd || 0 }} | 
+                韓元換算: ${{ Math.round((p.costKrw || 0) * (p.rate || 0.024)) }} | 
+                雜支: ${{ p.shipping || 0 }}
               </div>
             </div>
             <div class="text-right flex items-center gap-3">
@@ -154,8 +158,12 @@
             <input v-model="editProject.title" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           </div>
           <div>
-            <label class="text-xs text-slate-500 font-medium">總收入 (一補 + 二補金額)</label>
+            <label class="text-xs text-slate-500 font-medium">總收入 (一補 + 二補金額 TWD)</label>
             <input v-model.number="editProject.income" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 font-medium">台幣採購成本 (TWD)</label>
+            <input v-model.number="editProject.costTwd" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -163,7 +171,7 @@
               <input v-model.number="editProject.costKrw" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             </div>
             <div>
-              <label class="text-xs text-slate-500 font-medium">匯率</label>
+              <label class="text-xs text-slate-500 font-medium">韓元匯率</label>
               <input v-model.number="editProject.rate" type="number" step="0.001" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             </div>
           </div>
@@ -188,7 +196,7 @@
         const activeTab = ref('finance')
         const members = ['S.COUPS', 'JEONGHAN', 'JOSHUA', 'JUN', 'HOSHI', 'WONWOO', 'WOOZI', 'THE 8', 'MINGYU', 'DK', 'SEUNGKWAN', 'VERNON', 'DINO', '團體/全員']
         
-        const defaultProjects = [{ title: '12th Mini Album 官網預購', income: 15000, costKrw: 450000, rate: 0.024, shipping: 1200 }]
+        const defaultProjects = [{ title: '12th Mini Album 預購', income: 15000, costTwd: 8000, costKrw: 150000, rate: 0.024, shipping: 1200 }]
         const defaultInventory = [{ member: 'HOSHI', name: '全專官網特典卡', status: '未認領' }, { member: 'JEONGHAN', name: '專輯隨機小卡 A款', status: '已預訂' }]
 
         const projects = ref([])
@@ -204,10 +212,9 @@
         watch(projects, (newVal) => localStorage.setItem('17depot_projects', JSON.stringify(newVal)), { deep: true })
         watch(inventory, (newVal) => localStorage.setItem('17depot_inventory', JSON.stringify(newVal)), { deep: true })
 
-        const newProject = ref({ title: '', income: '', costKrw: '', rate: 0.024, shipping: '' })
+        const newProject = ref({ title: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' })
         const newItem = ref({ member: 'HOSHI', name: '', status: '未認領' })
 
-        // 編輯彈窗邏輯
         const editingIndex = ref(null)
         const editProject = ref({})
 
@@ -223,11 +230,19 @@
           }
         }
 
-        const calcProfit = (p) => p.income - Math.round(p.costKrw * p.rate) - p.shipping
+        // 淨利計算公式：收入 - 台幣成本 - (韓元成本 * 匯率) - 運費雜支
+        const calcProfit = (p) => {
+          const inc = p.income || 0
+          const twd = p.costTwd || 0
+          const krwInTwd = Math.round((p.costKrw || 0) * (p.rate || 0.024))
+          const ship = p.shipping || 0
+          return inc - twd - krwInTwd - ship
+        }
+
         const addProject = () => {
           if (!newProject.value.title) return
           projects.value.push({ ...newProject.value })
-          newProject.value = { title: '', income: '', costKrw: '', rate: 0.024, shipping: '' }
+          newProject.value = { title: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' }
         }
         const deleteProject = (index) => projects.value.splice(index, 1)
         const addItem = () => {
@@ -238,7 +253,12 @@
         const deleteItem = (index) => inventory.value.splice(index, 1)
 
         const totalRevenue = computed(() => projects.value.reduce((acc, p) => acc + (p.income || 0), 0))
-        const totalCost = computed(() => projects.value.reduce((acc, p) => acc + Math.round((p.costKrw || 0) * (p.rate || 0.024)) + (p.shipping || 0), 0))
+        const totalCost = computed(() => projects.value.reduce((acc, p) => {
+          const twd = p.costTwd || 0
+          const krwInTwd = Math.round((p.costKrw || 0) * (p.rate || 0.024))
+          const ship = p.shipping || 0
+          return acc + twd + krwInTwd + ship
+        }, 0))
         const totalProfit = computed(() => totalRevenue.value - totalCost.value)
 
         return { 
