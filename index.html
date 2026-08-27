@@ -11,10 +11,20 @@
   <!-- 引入 Firebase SDK (相容模式) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    /* 強制修正手機版日期輸入框 (input[type="date"]) 凸出問題 */
+    input[type="date"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      box-sizing: border-box;
+      min-width: 0;
+    }
+  </style>
 </head>
 <body class="bg-[#F8FAFC] p-3 sm:p-6 md:p-8 font-sans text-slate-700 antialiased selection:bg-[#F7CAC9] selection:text-[#7A4F4E]">
   <div id="app" class="max-w-4xl mx-auto">
-    <!-- 標頭 (行動端滿版優化) -->
+    <!-- 標頭 -->
     <header class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E2E8F0] mb-4 sm:mb-6 flex justify-between items-center relative overflow-hidden">
       <div class="absolute top-0 left-0 w-1.5 sm:w-2 h-full bg-[#91A8D0]"></div>
       <div class="pl-2 sm:pl-3">
@@ -31,7 +41,7 @@
       </div>
     </header>
 
-    <!-- 頁籤切換 (手機寬度均分) -->
+    <!-- 頁籤切換 -->
     <div class="grid grid-cols-2 gap-2 mb-4 sm:mb-6">
       <button 
         @click="activeTab = 'finance'" 
@@ -64,13 +74,13 @@
             <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album)" class="w-full p-2.5 sm:p-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] mt-1">
           </div>
 
-          <!-- 第 2 層：結單日與預計出貨日 (手機適應版) -->
+          <!-- 第 2 層：結單日與預計出貨日 (修復防凸出 min-w-0) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
+            <div class="min-w-0">
               <label class="text-xs text-slate-500 font-medium ml-1">結單日</label>
               <input v-model="newProject.closeDate" type="date" class="w-full p-2.5 sm:p-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600 mt-1">
             </div>
-            <div>
+            <div class="min-w-0">
               <label class="text-xs text-slate-500 font-medium ml-1">預計出貨日</label>
               <input v-model="newProject.estShipDate" type="date" class="w-full p-2.5 sm:p-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600 mt-1">
             </div>
@@ -78,11 +88,11 @@
 
           <!-- 第 3 層：收入與成本 -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
+            <div class="min-w-0">
               <label class="text-xs text-slate-500 font-medium ml-1">預估總收入 (TWD)</label>
               <input v-model.number="newProject.income" type="number" placeholder="0" class="w-full p-2.5 sm:p-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] mt-1">
             </div>
-            <div>
+            <div class="min-w-0">
               <label class="text-xs text-slate-500 font-medium ml-1">採購與雜支總成本 (TWD)</label>
               <input v-model.number="newProject.costTwd" type="number" placeholder="0" class="w-full p-2.5 sm:p-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] mt-1">
             </div>
@@ -103,7 +113,7 @@
         </button>
       </div>
 
-      <!-- 統計數據 (手機單欄，電腦三欄) -->
+      <!-- 統計數據 -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-sm flex justify-between sm:block items-center">
           <div class="text-slate-400 text-xs sm:text-sm">總代購營業額</div>
@@ -144,12 +154,9 @@
         <div v-if="filteredProjects.length === 0" class="text-slate-400 text-center py-8 text-sm">目前無符合條件的代購專案記錄</div>
         
         <div class="space-y-3">
-          <!-- 手機版彈性響應卡片 -->
           <div v-for="p in filteredProjects" :key="p.id" class="p-3.5 sm:p-4 border border-slate-100 rounded-xl flex flex-col sm:flex-row justify-between hover:bg-slate-50 transition-all gap-2.5 sm:gap-4">
             
-            <!-- 左側專案資訊 -->
             <div class="min-w-0 flex-1 space-y-1.5">
-              <!-- 第一層：標題 + 標籤 -->
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-bold text-slate-800 text-sm sm:text-base leading-snug">{{ p.title }}</span>
                 <span class="text-[11px] sm:text-xs px-2 py-0.5 rounded-full font-medium shrink-0" :class="getStatusBadgeClass(p.status)">
@@ -157,7 +164,6 @@
                 </span>
               </div>
               
-              <!-- 第二層：結單與出貨日期 -->
               <div class="text-xs text-slate-500 flex items-center gap-2 sm:gap-3 flex-wrap pt-0.5">
                 <div class="flex items-center gap-1">
                   <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -171,13 +177,11 @@
                 </div>
               </div>
 
-              <!-- 第三層：收支細節 -->
               <div class="text-xs text-slate-500 truncate pt-0.5">
                 收入: ${{ p.income || 0 }} | 成本: ${{ p.costTwd || 0 }}
               </div>
             </div>
 
-            <!-- 右側金額與操作按鈕 (手機版橫向排列) -->
             <div class="flex sm:flex-col justify-between sm:justify-center items-center sm:items-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
               <div class="text-sm font-bold" :class="calcProfit(p) >= 0 ? 'text-[#5B8266]' : 'text-[#D98282]'">
                 淨利: ${{ calcProfit(p) }}
@@ -251,7 +255,7 @@
       </div>
     </div>
 
-    <!-- ✏️ 編輯專案 / 二補彈窗 (手機版智慧彈窗) -->
+    <!-- ✏️ 編輯專案 / 二補彈窗 (修復日期欄位防凸出) -->
     <div v-if="editingId !== null" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
       <div class="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
         <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -266,22 +270,22 @@
           </div>
           
           <div class="grid grid-cols-2 gap-2">
-            <div>
+            <div class="min-w-0">
               <label class="text-xs text-slate-500 font-medium">結單日</label>
               <input v-model="editProject.closeDate" type="date" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600">
             </div>
-            <div>
+            <div class="min-w-0">
               <label class="text-xs text-slate-500 font-medium">預計出貨日</label>
               <input v-model="editProject.estShipDate" type="date" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600">
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-2">
-            <div>
+            <div class="min-w-0">
               <label class="text-xs text-slate-500 font-medium">預估總收入 (TWD)</label>
               <input v-model.number="editProject.income" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             </div>
-            <div>
+            <div class="min-w-0">
               <label class="text-xs text-slate-500 font-medium">採購與雜支總成本 (TWD)</label>
               <input v-model.number="editProject.costTwd" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             </div>
