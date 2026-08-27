@@ -55,11 +55,16 @@
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album 預購)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
-          <select v-model="newProject.status" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          <select v-model="newProject.status" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
             <option v-for="s in shippingStatuses" :key="s" :value="s">貨態：{{ s }}</option>
           </select>
           <div>
-            <input v-model="newProject.estShipDate" type="date" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600">
+            <label class="text-xs text-slate-500 font-medium ml-1">結單日</label>
+            <input v-model="newProject.closeDate" type="date" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600 mt-1">
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 font-medium ml-1">預計出貨日</label>
+            <input v-model="newProject.estShipDate" type="date" class="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600 mt-1">
           </div>
           <input v-model.number="newProject.income" type="number" placeholder="預估總收入 (TWD 一補+二補)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.costTwd" type="number" placeholder="台幣採購成本 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
@@ -123,12 +128,20 @@
                 </span>
               </div>
               
-              <!-- 第二層：預計出貨日 -->
-              <div class="text-xs text-slate-500 flex items-center gap-1">
-                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <span>預計出貨日：</span>
-                <span v-if="p.estShipDate" class="font-medium text-slate-700">{{ p.estShipDate }}</span>
-                <span v-else class="text-slate-400">未設定</span>
+              <!-- 第二層：結單日 + 預計出貨日 (同一排) -->
+              <div class="text-xs text-slate-500 flex items-center gap-3 flex-wrap">
+                <div class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span>結單日：</span>
+                  <span v-if="p.closeDate" class="font-medium text-slate-700">{{ p.closeDate }}</span>
+                  <span v-else class="text-slate-400">未設定</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span>預計出貨日：</span>
+                  <span v-if="p.estShipDate" class="font-medium text-slate-700">{{ p.estShipDate }}</span>
+                  <span v-else class="text-slate-400">未設定</span>
+                </div>
               </div>
 
               <!-- 第三層：財務數據明細 -->
@@ -225,12 +238,16 @@
             <label class="text-xs text-slate-500 font-medium">專案名稱</label>
             <input v-model="editProject.title" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           </div>
+          <div>
+            <label class="text-xs text-slate-500 font-medium">貨態狀況</label>
+            <select v-model="editProject.status" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+              <option v-for="s in shippingStatuses" :key="s" :value="s">{{ s }}</option>
+            </select>
+          </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-xs text-slate-500 font-medium">貨態狀況</label>
-              <select v-model="editProject.status" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-                <option v-for="s in shippingStatuses" :key="s" :value="s">{{ s }}</option>
-              </select>
+              <label class="text-xs text-slate-500 font-medium">結單日</label>
+              <input v-model="editProject.closeDate" type="date" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0] text-slate-600">
             </div>
             <div>
               <label class="text-xs text-slate-500 font-medium">預計出貨日</label>
@@ -277,7 +294,7 @@
         const members = ['S.COUPS', 'JEONGHAN', 'JOSHUA', 'JUN', 'HOSHI', 'WONWOO', 'WOOZI', 'THE 8', 'MINGYU', 'DK', 'SEUNGKWAN', 'VERNON', 'DINO', '團體/全員']
         const shippingStatuses = ['開團中', '已購買完成', '官方出貨中', '已入集運倉', '運回中', '已寄發二補通知信', '出貨完畢']
         
-        const defaultProjects = [{ id: 1, title: '12th Mini Album 預購', status: '開團中', estShipDate: '', income: 15000, costTwd: 8000, costKrw: 150000, rate: 0.024, shipping: 1200, createdAt: Date.now() }]
+        const defaultProjects = [{ id: 1, title: '12th Mini Album 預購', status: '開團中', closeDate: '', estShipDate: '', income: 15000, costTwd: 8000, costKrw: 150000, rate: 0.024, shipping: 1200, createdAt: Date.now() }]
         const defaultInventory = [{ member: 'HOSHI', name: '全專官網特典卡', status: '未認領' }, { member: 'JEONGHAN', name: '專輯隨機小卡 A款', status: '已預訂' }]
 
         const projects = ref([])
@@ -295,6 +312,7 @@
             projects.value = parsed.map((p, idx) => ({
               id: p.id || (Date.now() + idx),
               createdAt: p.createdAt || (Date.now() + idx),
+              closeDate: p.closeDate || '',
               estShipDate: p.estShipDate || '',
               ...p
             }))
@@ -308,7 +326,7 @@
         watch(projects, (newVal) => localStorage.setItem('17depot_projects', JSON.stringify(newVal)), { deep: true })
         watch(inventory, (newVal) => localStorage.setItem('17depot_inventory', JSON.stringify(newVal)), { deep: true })
 
-        const newProject = ref({ title: '', status: '開團中', estShipDate: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' })
+        const newProject = ref({ title: '', status: '開團中', closeDate: '', estShipDate: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' })
         const newItem = ref({ member: 'HOSHI', name: '', status: '未認領' })
 
         const editingId = ref(null)
@@ -394,7 +412,7 @@
             createdAt: Date.now(),
             ...newProject.value 
           })
-          newProject.value = { title: '', status: '開團中', estShipDate: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' }
+          newProject.value = { title: '', status: '開團中', closeDate: '', estShipDate: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' }
         }
 
         const addItem = () => {
