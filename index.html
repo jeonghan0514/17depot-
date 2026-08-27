@@ -46,6 +46,9 @@
         <h2 class="text-lg font-bold text-slate-800 mb-4">➕ 新增團購帳目</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album 預購)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
+          <select v-model="newProject.status" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
+            <option v-for="s in shippingStatuses" :key="s" :value="s">貨態：{{ s }}</option>
+          </select>
           <input v-model.number="newProject.income" type="number" placeholder="預估總收入 (TWD 一補+二補)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.costTwd" type="number" placeholder="台幣採購成本 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.costKrw" type="number" placeholder="韓元採購成本 (KRW)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
@@ -78,7 +81,12 @@
         <div class="space-y-3">
           <div v-for="(p, index) in projects" :key="index" class="p-4 border border-slate-100 rounded-xl flex justify-between items-center hover:bg-slate-50 transition-all">
             <div>
-              <div class="font-bold text-slate-800">{{ p.title }}</div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-800">{{ p.title }}</span>
+                <span class="text-xs px-2.5 py-0.5 rounded-full font-medium" :class="getStatusBadgeClass(p.status)">
+                  {{ p.status || '開團中' }}
+                </span>
+              </div>
               <div class="text-xs text-slate-500 mt-1">
                 收入: ${{ p.income || 0 }} | 
                 台幣成本: ${{ p.costTwd || 0 }} | 
@@ -158,6 +166,12 @@
             <input v-model="editProject.title" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           </div>
           <div>
+            <label class="text-xs text-slate-500 font-medium">貨態狀況</label>
+            <select v-model="editProject.status" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+              <option v-for="s in shippingStatuses" :key="s" :value="s">{{ s }}</option>
+            </select>
+          </div>
+          <div>
             <label class="text-xs text-slate-500 font-medium">總收入 (一補 + 二補金額 TWD)</label>
             <input v-model.number="editProject.income" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           </div>
@@ -195,8 +209,9 @@
       setup() {
         const activeTab = ref('finance')
         const members = ['S.COUPS', 'JEONGHAN', 'JOSHUA', 'JUN', 'HOSHI', 'WONWOO', 'WOOZI', 'THE 8', 'MINGYU', 'DK', 'SEUNGKWAN', 'VERNON', 'DINO', '團體/全員']
+        const shippingStatuses = ['開團中', '已購買完成', '官方出貨中', '已入集運倉', '運回中', '已寄發二補通知信', '出貨完畢']
         
-        const defaultProjects = [{ title: '12th Mini Album 預購', income: 15000, costTwd: 8000, costKrw: 150000, rate: 0.024, shipping: 1200 }]
+        const defaultProjects = [{ title: '12th Mini Album 預購', status: '開團中', income: 15000, costTwd: 8000, costKrw: 150000, rate: 0.024, shipping: 1200 }]
         const defaultInventory = [{ member: 'HOSHI', name: '全專官網特典卡', status: '未認領' }, { member: 'JEONGHAN', name: '專輯隨機小卡 A款', status: '已預訂' }]
 
         const projects = ref([])
@@ -212,7 +227,7 @@
         watch(projects, (newVal) => localStorage.setItem('17depot_projects', JSON.stringify(newVal)), { deep: true })
         watch(inventory, (newVal) => localStorage.setItem('17depot_inventory', JSON.stringify(newVal)), { deep: true })
 
-        const newProject = ref({ title: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' })
+        const newProject = ref({ title: '', status: '開團中', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' })
         const newItem = ref({ member: 'HOSHI', name: '', status: '未認領' })
 
         const editingIndex = ref(null)
@@ -230,7 +245,19 @@
           }
         }
 
-        // 淨利計算公式：收入 - 台幣成本 - (韓元成本 * 匯率) - 運費雜支
+        const getStatusBadgeClass = (status) => {
+          switch (status) {
+            case '開團中': return 'bg-sky-100 text-sky-700'
+            case '已購買完成': return 'bg-indigo-100 text-indigo-700'
+            case '官方出貨中': return 'bg-purple-100 text-purple-700'
+            case '已入集運倉': return 'bg-amber-100 text-amber-700'
+            case '運回中': return 'bg-orange-100 text-orange-700'
+            case '已寄發二補通知信': return 'bg-rose-100 text-rose-700'
+            case '出貨完畢': return 'bg-emerald-100 text-emerald-700'
+            default: return 'bg-slate-100 text-slate-600'
+          }
+        }
+
         const calcProfit = (p) => {
           const inc = p.income || 0
           const twd = p.costTwd || 0
@@ -242,7 +269,7 @@
         const addProject = () => {
           if (!newProject.value.title) return
           projects.value.push({ ...newProject.value })
-          newProject.value = { title: '', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' }
+          newProject.value = { title: '', status: '開團中', income: '', costTwd: '', costKrw: '', rate: 0.024, shipping: '' }
         }
         const deleteProject = (index) => projects.value.splice(index, 1)
         const addItem = () => {
@@ -262,8 +289,8 @@
         const totalProfit = computed(() => totalRevenue.value - totalCost.value)
 
         return { 
-          activeTab, members, projects, newProject, inventory, newItem, 
-          editingIndex, editProject, openEditModal, saveEdit,
+          activeTab, members, shippingStatuses, projects, newProject, inventory, newItem, 
+          editingIndex, editProject, openEditModal, saveEdit, getStatusBadgeClass,
           calcProfit, addProject, deleteProject, addItem, deleteItem, 
           totalRevenue, totalCost, totalProfit 
         }
