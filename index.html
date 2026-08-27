@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>💎 17depot收支與小卡庫存管理</title>
+  <title>💎 17depot收支&庫存管理</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
@@ -14,7 +14,7 @@
       <div class="absolute top-0 left-0 w-2 h-full bg-[#91A8D0]"></div>
       <div class="pl-3">
         <h1 class="text-2xl font-bold text-[#4A5568] flex items-center gap-2">
-          💎 17depot 收支與小卡庫存
+          💎 17depot 收支&庫存
         </h1>
         <p class="text-[#718096] text-sm mt-1">SVT 官方應援色質感版 · 即時紀錄收益與 13 位成員盤點</p>
       </div>
@@ -36,7 +36,7 @@
         @click="activeTab = 'inventory'" 
         :class="activeTab === 'inventory' ? 'bg-[#91A8D0] text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'"
         class="px-5 py-2.5 rounded-xl font-medium transition-all">
-        🃏 成員小卡庫存 (13人)
+        🃏 庫存
       </button>
     </div>
 
@@ -48,7 +48,7 @@
           <input v-model="newProject.title" type="text" placeholder="團購專案名稱 (例: 12th Mini Album 預購)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
           <input v-model.number="newProject.income" type="number" placeholder="預估總收入 (TWD 一補+二補)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.costTwd" type="number" placeholder="台幣採購成本 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
-          <input v-model.number="newProject.costKrw" type="number" placeholder="韓元採購成本 (KRW 偶爾使用)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          <input v-model.number="newProject.costKrw" type="number" placeholder="韓元採購成本 (KRW)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.rate" type="number" step="0.001" placeholder="韓元匯率 (預設 0.024)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <input v-model.number="newProject.shipping" type="number" placeholder="運費與雜支成本 (TWD)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0] md:col-span-2">
         </div>
@@ -102,15 +102,15 @@
       </div>
     </div>
 
-    <!-- 分頁 2: 13位成員小卡庫存 -->
+    <!-- 分頁 2: 庫存 -->
     <div v-if="activeTab === 'inventory'" class="space-y-6">
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h2 class="text-lg font-bold text-slate-800 mb-4">🃏 登記成員小卡認領狀態</h2>
+        <h2 class="text-lg font-bold text-slate-800 mb-4">🃏 登記認領狀態</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <select v-model="newItem.member" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             <option v-for="m in members" :key="m" :value="m">{{ m }}</option>
           </select>
-          <input v-model="newItem.name" type="text" placeholder="小卡/周邊名稱 (例: 官網特典卡)" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          <input v-model="newItem.name" type="text" placeholder="周邊名稱" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
           <select v-model="newItem.status" class="p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
             <option value="未認領">未認領 (庫存中)</option>
             <option value="已預訂">已預訂 (待二補)</option>
