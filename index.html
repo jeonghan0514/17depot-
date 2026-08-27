@@ -107,10 +107,10 @@
             <select v-model="sortOrder" class="p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#91A8D0] bg-slate-50">
               <option value="newest">建立時間：新到舊 (倒序)</option>
               <option value="oldest">建立時間：舊到新 (順序)</option>
+              <option value="closeDateAsc">結單日：近到遠</option>
+              <option value="closeDateDesc">結單日：遠到近</option>
               <option value="shipDateAsc">預計出貨日：近到遠</option>
               <option value="shipDateDesc">預計出貨日：遠到近</option>
-              <option value="profitDesc">淨利：高到低</option>
-              <option value="profitAsc">淨利：低到高</option>
             </select>
           </div>
         </div>
@@ -128,7 +128,7 @@
                 </span>
               </div>
               
-              <!-- 第二層：結單日 + 預計出貨日 (同一排) -->
+              <!-- 第二層：結單日 + 預計出貨日 -->
               <div class="text-xs text-slate-500 flex items-center gap-3 flex-wrap">
                 <div class="flex items-center gap-1">
                   <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -372,9 +372,20 @@
           list.sort((a, b) => {
             if (sortOrder.value === 'newest') return (b.createdAt || 0) - (a.createdAt || 0)
             if (sortOrder.value === 'oldest') return (a.createdAt || 0) - (b.createdAt || 0)
-            if (sortOrder.value === 'profitDesc') return calcProfit(b) - calcProfit(a)
-            if (sortOrder.value === 'profitAsc') return calcProfit(a) - calcProfit(b)
             
+            // 結單日排序（未填寫的放在最後面）
+            if (sortOrder.value === 'closeDateAsc') {
+              if (!a.closeDate) return 1
+              if (!b.closeDate) return -1
+              return a.closeDate.localeCompare(b.closeDate)
+            }
+            if (sortOrder.value === 'closeDateDesc') {
+              if (!a.closeDate) return 1
+              if (!b.closeDate) return -1
+              return b.closeDate.localeCompare(a.closeDate)
+            }
+
+            // 預計出貨日排序
             if (sortOrder.value === 'shipDateAsc') {
               if (!a.estShipDate) return 1
               if (!b.estShipDate) return -1
