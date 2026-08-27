@@ -79,14 +79,19 @@
             <div>
               <div class="font-bold text-slate-800">{{ p.title }}</div>
               <div class="text-xs text-slate-500 mt-1">
-                收入: ${{ p.income }} | 韓元換算: ${{ Math.round(p.costKrw * p.rate) }} | 雜支: ${{ p.shipping }}
+                收入: ${{ p.income }} | 韓元換算: ${{ Math.round(p.costKrw * p.rate) }} | 運費雜支: ${{ p.shipping }}
               </div>
             </div>
-            <div class="text-right">
-              <div class="text-sm font-bold" :class="calcProfit(p) >= 0 ? 'text-[#5B8266]' : 'text-[#D98282]'">
-                淨利: ${{ calcProfit(p) }}
+            <div class="text-right flex items-center gap-3">
+              <div>
+                <div class="text-sm font-bold" :class="calcProfit(p) >= 0 ? 'text-[#5B8266]' : 'text-[#D98282]'">
+                  淨利: ${{ calcProfit(p) }}
+                </div>
+                <div class="flex gap-2 justify-end mt-1">
+                  <button @click="openEditModal(index)" class="text-xs text-[#91A8D0] hover:underline font-medium">✏️ 編輯/二補</button>
+                  <button @click="deleteProject(index)" class="text-xs text-slate-400 hover:text-rose-500">刪除</button>
+                </div>
               </div>
-              <button @click="deleteProject(index)" class="text-xs text-slate-400 hover:text-rose-500 mt-1">刪除</button>
             </div>
           </div>
         </div>
@@ -138,6 +143,42 @@
         </div>
       </div>
     </div>
+
+    <!-- ✏️ 編輯專案 / 二補彈窗 -->
+    <div v-if="editingIndex !== null" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">✏️ 編輯專案 / 補上二補金額</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-slate-500 font-medium">專案名稱</label>
+            <input v-model="editProject.title" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 font-medium">總收入 (一補 + 二補金額)</label>
+            <input v-model.number="editProject.income" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-slate-500 font-medium">韓元採購成本 (KRW)</label>
+              <input v-model.number="editProject.costKrw" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+            </div>
+            <div>
+              <label class="text-xs text-slate-500 font-medium">匯率</label>
+              <input v-model.number="editProject.rate" type="number" step="0.001" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 font-medium">運費與雜支成本 (TWD)</label>
+            <input v-model.number="editProject.shipping" type="number" class="w-full p-2.5 border border-slate-200 rounded-xl mt-1 focus:outline-none focus:ring-2 focus:ring-[#91A8D0]">
+          </div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button @click="editingIndex = null" class="w-1/2 py-2.5 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-medium">取消</button>
+          <button @click="saveEdit" class="w-1/2 py-2.5 bg-[#91A8D0] text-white rounded-xl hover:bg-[#7d97c4] font-bold shadow-md">儲存修改</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -153,7 +194,6 @@
         const projects = ref([])
         const inventory = ref([])
 
-        // 初始化：讀取本地儲存
         onMounted(() => {
           const savedProjects = localStorage.getItem('17depot_projects')
           const savedInventory = localStorage.getItem('17depot_inventory')
@@ -161,12 +201,27 @@
           inventory.value = savedInventory ? JSON.parse(savedInventory) : defaultInventory
         })
 
-        // 自動監聽變更並儲存到瀏覽器
         watch(projects, (newVal) => localStorage.setItem('17depot_projects', JSON.stringify(newVal)), { deep: true })
         watch(inventory, (newVal) => localStorage.setItem('17depot_inventory', JSON.stringify(newVal)), { deep: true })
 
         const newProject = ref({ title: '', income: '', costKrw: '', rate: 0.024, shipping: '' })
         const newItem = ref({ member: 'HOSHI', name: '', status: '未認領' })
+
+        // 編輯彈窗邏輯
+        const editingIndex = ref(null)
+        const editProject = ref({})
+
+        const openEditModal = (index) => {
+          editingIndex.value = index
+          editProject.value = { ...projects.value[index] }
+        }
+
+        const saveEdit = () => {
+          if (editingIndex.value !== null) {
+            projects.value[editingIndex.value] = { ...editProject.value }
+            editingIndex.value = null
+          }
+        }
 
         const calcProfit = (p) => p.income - Math.round(p.costKrw * p.rate) - p.shipping
         const addProject = () => {
@@ -186,7 +241,12 @@
         const totalCost = computed(() => projects.value.reduce((acc, p) => acc + Math.round((p.costKrw || 0) * (p.rate || 0.024)) + (p.shipping || 0), 0))
         const totalProfit = computed(() => totalRevenue.value - totalCost.value)
 
-        return { activeTab, members, projects, newProject, inventory, newItem, calcProfit, addProject, deleteProject, addItem, deleteItem, totalRevenue, totalCost, totalProfit }
+        return { 
+          activeTab, members, projects, newProject, inventory, newItem, 
+          editingIndex, editProject, openEditModal, saveEdit,
+          calcProfit, addProject, deleteProject, addItem, deleteItem, 
+          totalRevenue, totalCost, totalProfit 
+        }
       }
     }).mount('#app')
   </script>
